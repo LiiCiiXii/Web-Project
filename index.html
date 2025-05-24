@@ -3,29 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShopHub - Your Ultimate Shopping Destination</title>
+    <title>ShopVibe - Modern Shopping Experience</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        accent: {
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                        }
+                    },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-in-out',
                         'slide-up': 'slideUp 0.2s ease-out',
+                        'bounce-in': 'bounceIn 0.5s ease-out',
+                        'shake': 'shake 0.5s ease-in-out',
+                        'pulse-slow': 'pulse 2s infinite',
+                    },
+                    backdropBlur: {
+                        xs: '2px',
                     }
                 }
             }
         }
     </script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         @keyframes slideUp {
-            from { transform: translateY(10px); opacity: 0; }
+            from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
         }
         
         .line-clamp-2 {
@@ -36,151 +73,222 @@
         }
         
         .product-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
         
         .product-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
         
         .product-image {
-            transition: transform 0.3s ease;
-            background: #f3f4f6;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .product-card:hover .product-image {
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
         
-        .cart-badge {
-            animation: bounce 0.3s ease;
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-5px); }
-            60% { transform: translateY(-2px); }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-
-        /* Skeleton loading animation */
+        
+        .floating-action {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: pulse-slow 2s infinite;
+        }
+        
+        .cart-item {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .cart-item.removing {
+            animation: slideUp 0.3s ease-out reverse;
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+        
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            animation: bounceIn 0.5s ease-out;
+        }
+        
+        .notification.hide {
+            animation: fadeIn 0.3s ease-out reverse;
+        }
+        
+        /* Loading skeleton */
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
             animation: loading 1.5s infinite;
         }
-
+        
         @keyframes loading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
-
-        /* Lazy loading placeholder */
-        .lazy-image {
-            background: #f3f4f6;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        
+        /* Modern button styles */
+        .btn-modern {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        /* Optimized scrollbar */
-        #cart-items::-webkit-scrollbar {
-            width: 4px;
+        
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
-
-        #cart-items::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        
+        .btn-modern:hover::before {
+            left: 100%;
         }
-
-        #cart-items::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 2px;
+        
+        /* Floating elements */
+        .floating {
+            animation: float 3s ease-in-out infinite;
         }
-
-        /* Reduced motion for better performance */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
-
-        /* Performance optimizations */
-        .products-grid {
-            contain: layout style paint;
+        
+        /* Modern card design */
+        .modern-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-
-        .product-card {
-            contain: layout style paint;
-            will-change: transform;
+        
+        .modern-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header class="glass-effect sticky top-0 z-50 border-b border-white/20">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo -->
                 <div class="flex items-center space-x-4">
-                    <h1 class="text-2xl font-bold text-gray-900">ShopHub</h1>
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">S</span>
+                    </div>
+                    <h1 class="text-2xl font-bold gradient-text">ShopVibe</h1>
                 </div>
 
                 <!-- Desktop Navigation -->
                 <nav class="hidden md:flex items-center space-x-8">
-                    <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">Home</a>
-                    <a href="#products" class="text-gray-700 hover:text-blue-600 transition-colors">Products</a>
-                    <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">Categories</a>
-                    <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">About</a>
-                    <a href="#" class="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium relative group">
+                        Home
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                    <a href="#products" class="text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium relative group">
+                        Products
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium relative group">
+                        Categories
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                    <a href="#" class="text-gray-700 hover:text-blue-600 transition-all duration-300 font-medium relative group">
+                        About
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                    </a>
                 </nav>
 
-                <!-- Search Bar - Hidden on mobile -->
+                <!-- Search Bar -->
                 <div class="hidden lg:flex items-center space-x-4 flex-1 max-w-md mx-8">
                     <div class="relative w-full">
-                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                         <input
                             type="text"
                             id="header-search"
-                            placeholder="Search products..."
-                            class="pl-10 pr-4 w-full h-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Search amazing products..."
+                            class="pl-10 pr-4 w-full h-11 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/80 backdrop-blur-sm transition-all duration-300"
                         />
                     </div>
                 </div>
 
                 <!-- Right side icons -->
                 <div class="flex items-center space-x-4">
-                    <!-- Mobile search icon -->
-                    <button class="lg:hidden p-2 text-gray-600 hover:text-blue-600" onclick="toggleMobileSearch()">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Mobile search -->
+                    <button class="lg:hidden p-2 text-gray-600 hover:text-blue-600 transition-colors" onclick="toggleMobileSearch()">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </button>
 
-                    <!-- User account -->
-                    <button class="hidden sm:flex p-2 text-gray-600 hover:text-blue-600">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    <!-- Wishlist -->
+                    <button class="hidden sm:flex p-2 text-gray-600 hover:text-red-500 transition-colors relative">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                         </svg>
+                        <span class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">0</span>
                     </button>
 
                     <!-- Shopping cart -->
-                    <button class="relative p-2 text-gray-600 hover:text-blue-600" onclick="toggleCart()">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button class="relative p-2 text-gray-600 hover:text-blue-600 transition-colors" onclick="toggleCart()">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
                         </svg>
-                        <span id="cart-badge" class="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center hidden">0</span>
+                        <span id="cart-badge" class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs flex items-center justify-center hidden font-medium">0</span>
                     </button>
 
-                    <!-- Mobile menu button -->
+                    <!-- Mobile menu -->
                     <button class="md:hidden p-2 text-gray-600" onclick="toggleMobileMenu()">
-                        <svg id="menu-icon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg id="menu-icon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
-                        <svg id="close-icon" class="h-5 w-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg id="close-icon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
@@ -188,9 +296,8 @@
             </div>
 
             <!-- Mobile menu -->
-            <div id="mobile-menu" class="md:hidden border-t bg-white hidden">
+            <div id="mobile-menu" class="md:hidden border-t border-white/20 glass-effect hidden">
                 <div class="px-2 pt-2 pb-3 space-y-1">
-                    <!-- Mobile search -->
                     <div id="mobile-search" class="relative mb-3 hidden">
                         <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -199,71 +306,92 @@
                             type="text"
                             id="mobile-search-input"
                             placeholder="Search products..."
-                            class="pl-10 pr-4 w-full h-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="pl-10 pr-4 w-full h-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
-
-                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Home</a>
-                    <a href="#products" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Products</a>
-                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Categories</a>
-                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-blue-600">About</a>
-                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Contact</a>
+                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-blue-600 font-medium">Home</a>
+                    <a href="#products" class="block px-3 py-2 text-gray-700 hover:text-blue-600 font-medium">Products</a>
+                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-blue-600 font-medium">Categories</a>
+                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-blue-600 font-medium">About</a>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="bg-gradient-to-r from-blue-600 to-purple-700 text-white">
-        <div class="container mx-auto px-4 py-12 lg:py-16">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <div class="space-y-6">
-                    <div class="space-y-4">
-                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                            Discover Amazing
-                            <span class="block text-yellow-300">Products</span>
+    <section class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600/90 to-purple-700/90"></div>
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        
+        <div class="relative container mx-auto px-4 py-20 lg:py-28">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8 text-white">
+                    <div class="space-y-6">
+                        <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+                            Shop the
+                            <span class="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
+                                Future
+                            </span>
                         </h1>
-                        <p class="text-lg text-blue-100 max-w-lg">
-                            Shop from our curated collection of high-quality products. Find everything you need with fast shipping and great prices.
+                        <p class="text-xl text-blue-100 max-w-lg leading-relaxed">
+                            Discover cutting-edge products with our AI-powered shopping experience. Find exactly what you need, when you need it.
                         </p>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <button class="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 rounded-md font-semibold transition-colors flex items-center justify-center">
-                            Shop Now
-                            <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button class="btn-modern bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center group">
+                            Start Shopping
+                            <svg class="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                             </svg>
                         </button>
-                        <button class="border border-white text-white hover:bg-white hover:text-blue-600 px-6 py-3 rounded-md font-semibold transition-colors">
-                            Learn More
+                        <button class="btn-modern border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 rounded-xl font-semibold transition-all duration-300">
+                            Watch Demo
                         </button>
+                    </div>
+
+                    <div class="flex items-center space-x-6 pt-4">
+                        <div class="flex items-center space-x-1">
+                            ${Array(5).fill().map(() => `
+                                <svg class="h-5 w-5 fill-yellow-300 text-yellow-300" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                            `).join('')}
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-semibold">4.9/5</span>
+                            <span class="text-blue-200 ml-1">from 10,000+ reviews</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="relative">
-                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-blue-200">Featured Categories</span>
-                                <span class="text-yellow-300 font-semibold">50+ Items</span>
+                    <div class="floating glass-effect rounded-3xl p-8 border border-white/20">
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between text-white">
+                                <span class="text-blue-200">Trending Now</span>
+                                <span class="text-yellow-300 font-semibold">🔥 Hot</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-white/20 rounded-lg p-3 text-center">
-                                    <div class="text-xl mb-1">👕</div>
-                                    <div class="text-sm font-medium">Clothing</div>
-                                </div>
-                                <div class="bg-white/20 rounded-lg p-3 text-center">
-                                    <div class="text-xl mb-1">📱</div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="glass-effect rounded-xl p-4 text-center text-white hover:scale-105 transition-transform">
+                                    <div class="text-3xl mb-2">📱</div>
                                     <div class="text-sm font-medium">Electronics</div>
+                                    <div class="text-xs text-blue-200">2.5k items</div>
                                 </div>
-                                <div class="bg-white/20 rounded-lg p-3 text-center">
-                                    <div class="text-xl mb-1">🏠</div>
+                                <div class="glass-effect rounded-xl p-4 text-center text-white hover:scale-105 transition-transform">
+                                    <div class="text-3xl mb-2">👕</div>
+                                    <div class="text-sm font-medium">Fashion</div>
+                                    <div class="text-xs text-blue-200">1.8k items</div>
+                                </div>
+                                <div class="glass-effect rounded-xl p-4 text-center text-white hover:scale-105 transition-transform">
+                                    <div class="text-3xl mb-2">🏠</div>
                                     <div class="text-sm font-medium">Home</div>
+                                    <div class="text-xs text-blue-200">950 items</div>
                                 </div>
-                                <div class="bg-white/20 rounded-lg p-3 text-center">
-                                    <div class="text-xl mb-1">👟</div>
-                                    <div class="text-sm font-medium">Shoes</div>
+                                <div class="glass-effect rounded-xl p-4 text-center text-white hover:scale-105 transition-transform">
+                                    <div class="text-3xl mb-2">⚽</div>
+                                    <div class="text-sm font-medium">Sports</div>
+                                    <div class="text-xs text-blue-200">720 items</div>
                                 </div>
                             </div>
                         </div>
@@ -274,46 +402,51 @@
     </section>
 
     <!-- Products Section -->
-    <section id="products" class="py-12 bg-gray-50">
+    <section id="products" class="py-16">
         <div class="container mx-auto px-4">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Products</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">
-                    Discover our amazing collection of products from various categories.
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">Discover Amazing Products</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto text-lg">
+                    Explore our curated collection of premium products, handpicked for quality and style.
                 </p>
             </div>
 
-            <!-- Search Bar -->
-            <div class="max-w-md mx-auto mb-6">
+            <!-- Enhanced Search Bar -->
+            <div class="max-w-2xl mx-auto mb-8">
                 <div class="relative">
-                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                     <input
                         type="text"
                         id="product-search"
-                        placeholder="Search products..."
-                        class="pl-10 pr-4 w-full h-12 text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Search for products, brands, categories..."
+                        class="pl-12 pr-6 w-full h-14 text-lg border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-lg transition-all duration-300"
                     />
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                        <kbd class="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">⌘K</kbd>
+                    </div>
                 </div>
             </div>
 
-            <!-- Filters and View Toggle -->
-            <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-6">
-                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-white p-4 rounded-lg shadow-sm border">
-                    <div class="flex items-center gap-2">
-                        <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
-                        </svg>
-                        <span class="font-medium text-gray-700">Filters:</span>
+            <!-- Enhanced Filters -->
+            <div class="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between mb-8">
+                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center modern-card p-6 rounded-2xl w-full lg:w-auto">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-gray-800">Smart Filters</span>
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        <select id="category-filter" class="w-full sm:w-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <select id="category-filter" class="w-full sm:w-48 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
                             <option value="all">All Categories</option>
                         </select>
 
-                        <select id="sort-filter" class="w-full sm:w-48 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <select id="sort-filter" class="w-full sm:w-48 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white font-medium">
                             <option value="name">Name A-Z</option>
                             <option value="price-low">Price: Low to High</option>
                             <option value="price-high">Price: High to Low</option>
@@ -321,94 +454,122 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-gray-600 mr-2">View:</span>
-                    <button id="grid-view" class="px-3 py-2 bg-blue-600 text-white rounded-md" onclick="setViewMode('grid')">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                        </svg>
-                    </button>
-                    <button id="list-view" class="px-3 py-2 border border-gray-300 text-gray-600 rounded-md" onclick="setViewMode('list')">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                        </svg>
-                    </button>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-gray-600">View:</span>
+                    <div class="flex items-center bg-gray-100 rounded-xl p-1">
+                        <button id="grid-view" class="px-4 py-2 bg-white text-gray-800 rounded-lg shadow-sm font-medium transition-all" onclick="setViewMode('grid')">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                        </button>
+                        <button id="list-view" class="px-4 py-2 text-gray-600 rounded-lg font-medium transition-all" onclick="setViewMode('list')">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Results count -->
-            <div class="mb-4">
-                <p id="results-count" class="text-gray-600">Loading products...</p>
+            <div class="mb-6">
+                <p id="results-count" class="text-gray-600 font-medium">Loading amazing products...</p>
             </div>
 
             <!-- Loading indicator -->
-            <div id="loading" class="text-center py-8">
-                <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <p class="mt-2 text-gray-600">Loading products...</p>
+            <div id="loading" class="text-center py-16">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+                <p class="mt-4 text-gray-600 font-medium">Loading products...</p>
             </div>
 
-            <!-- Products Grid/List -->
-            <div id="products-container" class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 hidden">
+            <!-- Products Grid -->
+            <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 hidden">
                 <!-- Products will be dynamically inserted here -->
             </div>
 
             <!-- No results -->
-            <div id="no-results" class="text-center py-12 hidden">
-                <div class="text-4xl mb-4">🔍</div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
-                <p class="text-gray-600 mb-4">Try adjusting your search or filter criteria</p>
-                <button onclick="clearFilters()" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                    Clear Filters
+            <div id="no-results" class="text-center py-16 hidden">
+                <div class="text-6xl mb-6">🔍</div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">No products found</h3>
+                <p class="text-gray-600 mb-8 text-lg">Try adjusting your search or filter criteria</p>
+                <button onclick="clearFilters()" class="btn-modern bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-semibold">
+                    Clear All Filters
                 </button>
             </div>
 
             <!-- Pagination -->
-            <div id="pagination" class="flex justify-center items-center space-x-2 mt-8 hidden">
+            <div id="pagination" class="flex justify-center items-center space-x-3 mt-12 hidden">
                 <!-- Pagination will be dynamically inserted here -->
             </div>
         </div>
     </section>
 
-    <!-- Shopping Cart Sidebar -->
-    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-96 bg-white shadow-xl transform translate-x-full transition-transform duration-300 z-50">
+    <!-- Enhanced Shopping Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl transform translate-x-full transition-all duration-300 z-50 border-l border-gray-200">
         <div class="flex flex-col h-full">
-            <div class="flex items-center justify-between p-4 border-b">
-                <h2 class="text-lg font-semibold">Shopping Cart</h2>
-                <button onclick="toggleCart()" class="p-2 text-gray-600 hover:text-gray-800">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Cart Header -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-bold gradient-text">Shopping Cart</h2>
+                </div>
+                <button onclick="toggleCart()" class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
             
-            <div id="cart-items" class="flex-1 overflow-y-auto p-4">
-                <div id="empty-cart" class="text-center py-8">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
-                    </svg>
-                    <p class="mt-2 text-gray-600">Your cart is empty</p>
+            <!-- Cart Items -->
+            <div id="cart-items" class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <div id="empty-cart" class="text-center py-12">
+                    <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Your cart is empty</h3>
+                    <p class="text-gray-600 mb-6">Add some products to get started!</p>
+                    <button onclick="toggleCart()" class="btn-modern bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-semibold">
+                        Continue Shopping
+                    </button>
                 </div>
             </div>
             
-            <div id="cart-footer" class="border-t p-4 hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="font-semibold">Total:</span>
-                    <span id="cart-total" class="text-xl font-bold text-green-600">$0.00</span>
+            <!-- Cart Footer -->
+            <div id="cart-footer" class="border-t border-gray-200 p-6 bg-gray-50 hidden">
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center text-lg">
+                        <span class="font-semibold text-gray-800">Total:</span>
+                        <span id="cart-total" class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">$0.00</span>
+                    </div>
+                    <button class="btn-modern w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-semibold text-lg">
+                        Proceed to Checkout
+                    </button>
+                    <button onclick="clearCart()" class="btn-modern w-full border-2 border-red-300 text-red-600 py-3 rounded-xl hover:bg-red-50 transition-all duration-300 font-semibold">
+                        Clear Cart
+                    </button>
                 </div>
-                <button class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors mb-2">
-                    Checkout
-                </button>
-                <button onclick="clearCart()" class="w-full border border-red-300 text-red-600 py-2 rounded-md hover:bg-red-50 transition-colors">
-                    Clear Cart
-                </button>
             </div>
         </div>
     </div>
 
     <!-- Cart overlay -->
-    <div id="cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40" onclick="toggleCart()"></div>
+    <div id="cart-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40" onclick="toggleCart()"></div>
 
-    <!-- Include JavaScript file -->
+    <!-- Floating Action Button -->
+    <div class="floating-action">
+        <button onclick="scrollToTop()" class="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+            </svg>
+        </button>
+    </div>
+
     <script src="javascript.js"></script>
 </body>
 </html>

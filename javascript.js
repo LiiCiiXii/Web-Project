@@ -2,22 +2,32 @@
 let allProducts = [];
 let filteredProducts = [];
 let currentPage = 1;
-const itemsPerPage = 20; // Increased for better performance
+const itemsPerPage = 20;
 let viewMode = 'grid';
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let isLoading = false;
-let cache = new Map(); // Simple caching system
+let cache = new Map();
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     updateCartUI();
     setupEventListeners();
     fetchProducts();
+    setupKeyboardShortcuts();
 });
+
+// Setup keyboard shortcuts
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            document.getElementById('product-search').focus();
+        }
+    });
+}
 
 // Setup event listeners with debouncing
 function setupEventListeners() {
-    // Debounced search
     let searchTimeout;
     const searchHandler = (event) => {
         clearTimeout(searchTimeout);
@@ -31,14 +41,39 @@ function setupEventListeners() {
     document.getElementById('sort-filter').addEventListener('change', handleFilter);
 }
 
-// Optimized fetch with caching and timeout
+// Enhanced notification system
+function showNotification(message, type = 'success', duration = 3000) {
+    const container = document.getElementById('notification-container');
+    const notification = document.createElement('div');
+    
+    const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+    const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+    
+    notification.className = `notification ${bgColor} text-white px-6 py-4 rounded-xl shadow-lg flex items-center space-x-3 max-w-sm`;
+    notification.innerHTML = `
+        <span class="text-lg font-bold">${icon}</span>
+        <span class="font-medium">${message}</span>
+    `;
+    
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('hide');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, duration);
+}
+
+// Optimized fetch with enhanced error handling
 function fetchProducts() {
     if (isLoading) return;
     
-    // Check cache first
     const cacheKey = 'products';
     const cachedData = cache.get(cacheKey);
-    const cacheTime = 5 * 60 * 1000; // 5 minutes
+    const cacheTime = 5 * 60 * 1000;
     
     if (cachedData && (Date.now() - cachedData.timestamp) < cacheTime) {
         allProducts = cachedData.data;
@@ -53,9 +88,8 @@ function fetchProducts() {
     isLoading = true;
     const xhr = new XMLHttpRequest();
     
-    // Shorter timeout for faster failure detection
-    xhr.timeout = 5000;
-    xhr.open('GET', 'https://api.escuelajs.co/api/v1/products?limit=50', true); // Limit initial load
+    xhr.timeout = 8000;
+    xhr.open('GET', 'https://api.escuelajs.co/api/v1/products?limit=100', true);
     
     xhr.onreadystatechange = function() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
@@ -64,7 +98,6 @@ function fetchProducts() {
                 try {
                     const products = JSON.parse(xhr.responseText);
                     
-                    // Cache the data
                     cache.set(cacheKey, {
                         data: products,
                         timestamp: Date.now()
@@ -73,19 +106,21 @@ function fetchProducts() {
                     allProducts = products;
                     filteredProducts = [...allProducts];
                     
-                    // Use requestAnimationFrame for smooth rendering
                     requestAnimationFrame(() => {
                         populateCategories();
                         displayProducts();
                         updateResultsCount();
                         hideLoading();
+                        showNotification('Products loaded successfully!', 'success');
                     });
                 } catch (error) {
                     console.error('Error parsing JSON:', error);
                     showError('Failed to parse product data');
+                    showNotification('Failed to load products', 'error');
                 }
             } else {
                 showError('Failed to load products. Please try again.');
+                showNotification('Network error occurred', 'error');
             }
         }
     };
@@ -93,28 +128,27 @@ function fetchProducts() {
     xhr.onerror = () => {
         isLoading = false;
         showError('Network error. Please check your connection.');
+        showNotification('Connection failed', 'error');
     };
     
     xhr.ontimeout = () => {
         isLoading = false;
         showError('Request timed out. Please try again.');
+        showNotification('Request timed out', 'error');
     };
     
     xhr.send();
 }
 
-// Optimized category population
+// Enhanced category population
 function populateCategories() {
     const categoryFilter = document.getElementById('category-filter');
     const existingOptions = categoryFilter.querySelectorAll('option:not([value="all"])');
     
-    // Clear existing options except "All Categories"
     existingOptions.forEach(option => option.remove());
     
-    // Use Set for better performance
     const categories = [...new Set(allProducts.map(product => product.category?.name).filter(Boolean))];
     
-    // Create fragment for better performance
     const fragment = document.createDocumentFragment();
     categories.forEach(category => {
         const option = document.createElement('option');
@@ -126,11 +160,10 @@ function populateCategories() {
     categoryFilter.appendChild(fragment);
 }
 
-// Debounced search handler
+// Enhanced search handler
 function handleSearch(event) {
     const query = event.target.value.toLowerCase();
     
-    // Sync search across all search inputs efficiently
     const searchInputs = ['product-search', 'header-search', 'mobile-search-input'];
     searchInputs.forEach(id => {
         const input = document.getElementById(id);
@@ -142,19 +175,17 @@ function handleSearch(event) {
     filterProducts();
 }
 
-// Optimized filter handler
 function handleFilter() {
     currentPage = 1;
     filterProducts();
 }
 
-// Optimized filtering with better performance
+// Enhanced filtering
 function filterProducts() {
     const searchQuery = document.getElementById('product-search').value.toLowerCase();
     const selectedCategory = document.getElementById('category-filter').value;
     const sortBy = document.getElementById('sort-filter').value;
 
-    // Use more efficient filtering
     filteredProducts = allProducts.filter(product => {
         if (!product) return false;
         
@@ -169,7 +200,6 @@ function filterProducts() {
         return matchesSearch && matchesCategory;
     });
 
-    // Optimized sorting
     if (sortBy !== 'name') {
         filteredProducts.sort((a, b) => {
             switch (sortBy) {
@@ -183,7 +213,6 @@ function filterProducts() {
         });
     }
 
-    // Use requestAnimationFrame for smooth updates
     requestAnimationFrame(() => {
         displayProducts();
         updateResultsCount();
@@ -191,7 +220,7 @@ function filterProducts() {
     });
 }
 
-// Highly optimized product display with virtual scrolling concept
+// Enhanced product display
 function displayProducts() {
     const container = document.getElementById('products-container');
     const noResults = document.getElementById('no-results');
@@ -205,37 +234,34 @@ function displayProducts() {
     noResults.classList.add('hidden');
     container.classList.remove('hidden');
 
-    // Calculate pagination
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
-    // Update container class based on view mode
     container.className = viewMode === 'grid' 
-        ? 'products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
-        : 'space-y-4';
+        ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6'
+        : 'space-y-6';
 
-    // Use DocumentFragment for better performance
     const fragment = document.createDocumentFragment();
     
-    paginatedProducts.forEach(product => {
+    paginatedProducts.forEach((product, index) => {
         const productElement = document.createElement('div');
         productElement.innerHTML = createProductCard(product);
+        productElement.firstElementChild.style.animationDelay = `${index * 0.1}s`;
+        productElement.firstElementChild.classList.add('animate-fade-in');
         fragment.appendChild(productElement.firstElementChild);
     });
     
-    // Clear and append in one operation
     container.innerHTML = '';
     container.appendChild(fragment);
     
-    // Lazy load images after DOM update
     requestAnimationFrame(() => {
         lazyLoadImages();
         updatePagination();
     });
 }
 
-// Optimized product card creation
+// Enhanced product card creation
 function createProductCard(product) {
     if (!product) return '';
     
@@ -252,42 +278,56 @@ function createProductCard(product) {
     return createGridViewCard(product, imageUrl, price, title, description, categoryName);
 }
 
-// Optimized grid view card
+// Enhanced grid view card
 function createGridViewCard(product, imageUrl, price, title, description, categoryName) {
     return `
-        <div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-200">
-            <div class="relative aspect-square overflow-hidden group">
+        <div class="product-card modern-card rounded-2xl overflow-hidden group cursor-pointer">
+            <div class="relative aspect-square overflow-hidden">
                 <img 
                     data-src="${imageUrl}" 
                     alt="${title}" 
-                    class="lazy-image w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                    class="lazy-image w-full h-full object-cover transition-all duration-500 group-hover:scale-110" 
                     loading="lazy"
-                    onerror="this.src='https://via.placeholder.com/300x300/f3f4f6/9ca3af?text=No+Image'"
+                    onerror="this.src='https://via.placeholder.com/400x400/f8fafc/64748b?text=No+Image'"
                 >
                 
-                <!-- Category badge -->
-                <div class="absolute top-2 left-2">
-                    <span class="bg-white/90 text-gray-800 text-xs px-2 py-1 rounded-full">${categoryName}</span>
+                <!-- Enhanced overlay -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <button onclick="addToCart(${product.id})" class="btn-modern w-full bg-white text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
+                            <svg class="h-5 w-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
+                            </svg>
+                            Add to Cart
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Quick actions overlay -->
-                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                    <button onclick="addToCart(${product.id})" class="bg-white text-gray-800 px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition-colors">
-                        Add to Cart
+                <!-- Category badge -->
+                <div class="absolute top-3 left-3">
+                    <span class="bg-white/90 backdrop-blur-sm text-gray-800 text-xs px-3 py-1 rounded-full font-medium">${categoryName}</span>
+                </div>
+
+                <!-- Wishlist button -->
+                <div class="absolute top-3 right-3">
+                    <button onclick="toggleWishlist(${product.id})" class="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:text-red-500 transition-colors">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
                     </button>
                 </div>
             </div>
 
-            <div class="p-3">
-                <h3 class="font-semibold text-sm mb-1 line-clamp-2 hover:text-blue-600 transition-colors">${title}</h3>
-                <p class="text-gray-600 text-xs mb-2 line-clamp-2">${description}</p>
+            <div class="p-4">
+                <h3 class="font-semibold text-lg mb-2 line-clamp-2 hover:text-blue-600 transition-colors">${title}</h3>
+                <p class="text-gray-600 text-sm mb-3 line-clamp-2">${description}</p>
                 <div class="flex items-center justify-between">
-                    <span class="text-lg font-bold text-green-600">$${price.toFixed(2)}</span>
+                    <span class="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">$${price.toFixed(2)}</span>
                     <div class="flex items-center text-yellow-400">
-                        <svg class="h-3 w-3 fill-current" viewBox="0 0 20 20">
+                        <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                         </svg>
-                        <span class="text-xs ml-1">4.5</span>
+                        <span class="text-sm ml-1 font-medium">4.5</span>
                     </div>
                 </div>
             </div>
@@ -295,28 +335,33 @@ function createGridViewCard(product, imageUrl, price, title, description, catego
     `;
 }
 
-// Optimized list view card
+// Enhanced list view card
 function createListViewCard(product, imageUrl, price, title, description, categoryName) {
     return `
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col sm:flex-row">
-            <div class="relative w-full sm:w-32 h-32">
+        <div class="modern-card rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col sm:flex-row">
+            <div class="relative w-full sm:w-48 h-48 sm:h-auto">
                 <img 
                     data-src="${imageUrl}" 
                     alt="${title}" 
                     class="lazy-image w-full h-full object-cover" 
                     loading="lazy"
-                    onerror="this.src='https://via.placeholder.com/200x200/f3f4f6/9ca3af?text=No+Image'"
+                    onerror="this.src='https://via.placeholder.com/300x300/f8fafc/64748b?text=No+Image'"
                 >
             </div>
-            <div class="flex-1 p-4">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="inline-block bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full">${categoryName}</span>
+            <div class="flex-1 p-6">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="inline-block bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full font-medium">${categoryName}</span>
+                    <button onclick="toggleWishlist(${product.id})" class="p-2 text-gray-600 hover:text-red-500 transition-colors">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </button>
                 </div>
-                <h3 class="font-semibold text-lg mb-1 hover:text-blue-600 transition-colors">${title}</h3>
-                <p class="text-gray-600 text-sm mb-3 line-clamp-2">${description}</p>
+                <h3 class="font-bold text-xl mb-2 hover:text-blue-600 transition-colors">${title}</h3>
+                <p class="text-gray-600 mb-4 line-clamp-2">${description}</p>
                 <div class="flex items-center justify-between">
-                    <span class="text-xl font-bold text-green-600">$${price.toFixed(2)}</span>
-                    <button onclick="addToCart(${product.id})" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm">
+                    <span class="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">$${price.toFixed(2)}</span>
+                    <button onclick="addToCart(${product.id})" class="btn-modern bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-semibold">
                         Add to Cart
                     </button>
                 </div>
@@ -325,7 +370,7 @@ function createListViewCard(product, imageUrl, price, title, description, catego
     `;
 }
 
-// Lazy loading implementation
+// Enhanced lazy loading
 function lazyLoadImages() {
     const images = document.querySelectorAll('img[data-src]');
     
@@ -336,6 +381,7 @@ function lazyLoadImages() {
                     const img = entry.target;
                     img.src = img.dataset.src;
                     img.classList.remove('lazy-image');
+                    img.classList.add('animate-fade-in');
                     observer.unobserve(img);
                 }
             });
@@ -345,7 +391,6 @@ function lazyLoadImages() {
 
         images.forEach(img => imageObserver.observe(img));
     } else {
-        // Fallback for older browsers
         images.forEach(img => {
             img.src = img.dataset.src;
             img.classList.remove('lazy-image');
@@ -353,10 +398,9 @@ function lazyLoadImages() {
     }
 }
 
-// Optimized image URL handling
 function getValidImageUrl(images) {
     if (!images || !Array.isArray(images) || images.length === 0) {
-        return 'https://via.placeholder.com/300x300/f3f4f6/9ca3af?text=No+Image';
+        return 'https://via.placeholder.com/400x400/f8fafc/64748b?text=No+Image';
     }
     
     let imageUrl = images[0];
@@ -364,10 +408,9 @@ function getValidImageUrl(images) {
         imageUrl = imageUrl.replace(/[[\]"]/g, '').trim();
     }
     
-    return imageUrl || 'https://via.placeholder.com/300x300/f3f4f6/9ca3af?text=No+Image';
+    return imageUrl || 'https://via.placeholder.com/400x400/f8fafc/64748b?text=No+Image';
 }
 
-// Optimized results count update
 function updateResultsCount() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
@@ -376,11 +419,11 @@ function updateResultsCount() {
     if (filteredProducts.length === 0) {
         resultsCount.textContent = 'No products found';
     } else {
-        resultsCount.textContent = `Showing ${startIndex + 1}-${endIndex} of ${filteredProducts.length} products`;
+        resultsCount.textContent = `Showing ${startIndex + 1}-${endIndex} of ${filteredProducts.length} amazing products`;
     }
 }
 
-// Optimized pagination
+// Enhanced pagination
 function updatePagination() {
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     const pagination = document.getElementById('pagination');
@@ -397,12 +440,12 @@ function updatePagination() {
     // Previous button
     paginationHTML.push(`
         <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
-            class="px-3 py-2 border border-gray-300 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'} transition-colors">
+            class="px-4 py-3 border-2 border-gray-200 rounded-xl ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50 hover:border-blue-300'} transition-all duration-300 font-medium">
             Previous
         </button>
     `);
     
-    // Page numbers (simplified for performance)
+    // Page numbers
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -414,7 +457,7 @@ function updatePagination() {
     for (let i = startPage; i <= endPage; i++) {
         paginationHTML.push(`
             <button onclick="changePage(${i})" 
-                class="w-10 h-10 ${currentPage === i ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'} rounded-md transition-colors">
+                class="w-12 h-12 ${currentPage === i ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-blue-300'} rounded-xl transition-all duration-300 font-semibold">
                 ${i}
             </button>
         `);
@@ -423,7 +466,7 @@ function updatePagination() {
     // Next button
     paginationHTML.push(`
         <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} 
-            class="px-3 py-2 border border-gray-300 rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'} transition-colors">
+            class="px-4 py-3 border-2 border-gray-200 rounded-xl ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50 hover:border-blue-300'} transition-all duration-300 font-medium">
             Next
         </button>
     `);
@@ -431,27 +474,24 @@ function updatePagination() {
     pagination.innerHTML = paginationHTML.join('');
 }
 
-// Optimized page change
 function changePage(page) {
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     if (page < 1 || page > totalPages) return;
     
     currentPage = page;
     
-    // Smooth scroll to top of products
     document.getElementById('products').scrollIntoView({ 
         behavior: 'smooth',
         block: 'start'
     });
     
-    // Use requestAnimationFrame for smooth updates
     requestAnimationFrame(() => {
         displayProducts();
         updateResultsCount();
     });
 }
 
-// Optimized view mode switching
+// Enhanced view mode switching
 function setViewMode(mode) {
     if (viewMode === mode) return;
     
@@ -461,11 +501,11 @@ function setViewMode(mode) {
     const listBtn = document.getElementById('list-view');
     
     if (mode === 'grid') {
-        gridBtn.className = 'px-3 py-2 bg-blue-600 text-white rounded-md transition-colors';
-        listBtn.className = 'px-3 py-2 border border-gray-300 text-gray-600 rounded-md transition-colors';
+        gridBtn.className = 'px-4 py-2 bg-white text-gray-800 rounded-lg shadow-sm font-medium transition-all';
+        listBtn.className = 'px-4 py-2 text-gray-600 rounded-lg font-medium transition-all';
     } else {
-        gridBtn.className = 'px-3 py-2 border border-gray-300 text-gray-600 rounded-md transition-colors';
-        listBtn.className = 'px-3 py-2 bg-blue-600 text-white rounded-md transition-colors';
+        gridBtn.className = 'px-4 py-2 text-gray-600 rounded-lg font-medium transition-all';
+        listBtn.className = 'px-4 py-2 bg-white text-gray-800 rounded-lg shadow-sm font-medium transition-all';
     }
     
     requestAnimationFrame(() => {
@@ -473,7 +513,6 @@ function setViewMode(mode) {
     });
 }
 
-// Optimized filter clearing
 function clearFilters() {
     const inputs = ['product-search', 'header-search', 'mobile-search-input'];
     inputs.forEach(id => {
@@ -488,24 +527,28 @@ function clearFilters() {
     requestAnimationFrame(() => {
         filterProducts();
     });
+    
+    showNotification('Filters cleared successfully!', 'info');
 }
 
-// Optimized loading state
 function hideLoading() {
     const loading = document.getElementById('loading');
     loading.classList.add('hidden');
 }
 
-// Optimized error display
 function showError(message) {
     const loading = document.getElementById('loading');
     loading.innerHTML = `
-        <div class="text-center py-8">
-            <div class="text-4xl mb-4">⚠️</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Error Loading Products</h3>
-            <p class="text-gray-600 mb-4">${message}</p>
-            <button onclick="location.reload()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Retry
+        <div class="text-center py-16">
+            <div class="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+                <svg class="h-10 w-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Oops! Something went wrong</h3>
+            <p class="text-gray-600 mb-6">${message}</p>
+            <button onclick="location.reload()" class="btn-modern bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-semibold">
+                Try Again
             </button>
         </div>
     `;
@@ -526,17 +569,24 @@ function toggleMobileMenu() {
 function toggleMobileSearch() {
     const mobileSearch = document.getElementById('mobile-search');
     mobileSearch.classList.toggle('hidden');
+    if (!mobileSearch.classList.contains('hidden')) {
+        document.getElementById('mobile-search-input').focus();
+    }
 }
 
-// Optimized cart functions
+// Enhanced cart functions with proper working delete and clear
 function addToCart(productId) {
     const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
+    if (!product) {
+        showNotification('Product not found!', 'error');
+        return;
+    }
     
     const existingItem = cart.find(item => item.id === productId);
     
     if (existingItem) {
         existingItem.quantity += 1;
+        showNotification(`Increased ${product.title} quantity!`, 'success');
     } else {
         cart.push({
             id: product.id,
@@ -545,23 +595,42 @@ function addToCart(productId) {
             image: getValidImageUrl(product.images),
             quantity: 1
         });
+        showNotification(`${product.title} added to cart!`, 'success');
     }
     
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartUI();
     
-    // Optimized badge animation
+    // Enhanced badge animation
     const badge = document.getElementById('cart-badge');
-    badge.style.animation = 'none';
-    requestAnimationFrame(() => {
-        badge.style.animation = 'bounce 0.3s ease';
-    });
+    badge.classList.add('animate-bounce-in');
+    setTimeout(() => {
+        badge.classList.remove('animate-bounce-in');
+    }, 500);
 }
 
+// Fixed remove from cart function
 function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartUI();
+    const itemIndex = cart.findIndex(item => item.id === productId);
+    if (itemIndex === -1) return;
+    
+    const item = cart[itemIndex];
+    const itemElement = document.querySelector(`[data-cart-item="${productId}"]`);
+    
+    if (itemElement) {
+        itemElement.classList.add('removing');
+        setTimeout(() => {
+            cart.splice(itemIndex, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartUI();
+            showNotification(`${item.title} removed from cart!`, 'info');
+        }, 300);
+    } else {
+        cart.splice(itemIndex, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartUI();
+        showNotification(`${item.title} removed from cart!`, 'info');
+    }
 }
 
 function updateQuantity(productId, quantity) {
@@ -578,13 +647,23 @@ function updateQuantity(productId, quantity) {
     }
 }
 
+// Fixed clear cart function
 function clearCart() {
-    cart = [];
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartUI();
+    if (cart.length === 0) {
+        showNotification('Cart is already empty!', 'info');
+        return;
+    }
+    
+    // Add confirmation
+    if (confirm('Are you sure you want to clear your entire cart?')) {
+        cart = [];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartUI();
+        showNotification('Cart cleared successfully!', 'success');
+    }
 }
 
-// Optimized cart UI update
+// Enhanced cart UI update with proper item rendering
 function updateCartUI() {
     const cartBadge = document.getElementById('cart-badge');
     const cartItems = document.getElementById('cart-items');
@@ -605,42 +684,47 @@ function updateCartUI() {
     
     // Update cart content
     if (cart.length === 0) {
-        emptyCart.classList.remove('hidden');
+        cartItems.innerHTML = `
+            <div id="empty-cart" class="text-center py-12">
+                <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Your cart is empty</h3>
+                <p class="text-gray-600 mb-6">Add some products to get started!</p>
+                <button onclick="toggleCart()" class="btn-modern bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-semibold">
+                    Continue Shopping
+                </button>
+            </div>
+        `;
         cartFooter.classList.add('hidden');
-        cartItems.innerHTML = '<div id="empty-cart" class="text-center py-8"><svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path></svg><p class="mt-2 text-gray-600">Your cart is empty</p></div>';
     } else {
-        emptyCart.classList.add('hidden');
         cartFooter.classList.remove('hidden');
         cartTotal.textContent = `$${totalPrice.toFixed(2)}`;
         
-        // Use fragment for better performance
-        const fragment = document.createDocumentFragment();
-        cart.forEach(item => {
-            const itemElement = document.createElement('div');
-            itemElement.innerHTML = createCartItemHTML(item);
-            fragment.appendChild(itemElement.firstElementChild);
-        });
-        
-        cartItems.innerHTML = '';
-        cartItems.appendChild(fragment);
+        // Create cart items HTML
+        const cartItemsHTML = cart.map(item => createCartItemHTML(item)).join('');
+        cartItems.innerHTML = cartItemsHTML;
     }
 }
 
+// Enhanced cart item HTML with proper data attributes for removal
 function createCartItemHTML(item) {
     return `
-        <div class="flex items-center space-x-3 py-3 border-b">
-            <img src="${item.image}" alt="${item.title}" class="w-12 h-12 object-cover rounded-md" onerror="this.src='https://via.placeholder.com/48x48/f3f4f6/9ca3af?text=No+Image'">
-            <div class="flex-1">
-                <h4 class="font-medium text-sm line-clamp-2">${item.title}</h4>
-                <p class="text-green-600 font-semibold text-sm">$${item.price.toFixed(2)}</p>
-                <div class="flex items-center space-x-2 mt-1">
-                    <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-sm hover:bg-gray-50 transition-colors">-</button>
-                    <span class="text-sm">${item.quantity}</span>
-                    <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-sm hover:bg-gray-50 transition-colors">+</button>
+        <div class="cart-item flex items-center space-x-4 py-4 border-b border-gray-200 last:border-b-0" data-cart-item="${item.id}">
+            <img src="${item.image}" alt="${item.title}" class="w-16 h-16 object-cover rounded-xl" onerror="this.src='https://via.placeholder.com/64x64/f8fafc/64748b?text=No+Image'">
+            <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-sm line-clamp-2 text-gray-900">${item.title}</h4>
+                <p class="text-lg font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">$${item.price.toFixed(2)}</p>
+                <div class="flex items-center space-x-3 mt-2">
+                    <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-blue-300 transition-all font-semibold">-</button>
+                    <span class="text-sm font-semibold min-w-[20px] text-center">${item.quantity}</span>
+                    <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:border-blue-300 transition-all font-semibold">+</button>
                 </div>
             </div>
-            <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700 transition-colors">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="removeFromCart(${item.id})" class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-300">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
             </button>
@@ -654,4 +738,71 @@ function toggleCart() {
     
     cartSidebar.classList.toggle('translate-x-full');
     cartOverlay.classList.toggle('hidden');
+    
+    // Focus management for accessibility
+    if (!cartSidebar.classList.contains('translate-x-full')) {
+        setTimeout(() => {
+            const firstFocusable = cartSidebar.querySelector('button');
+            if (firstFocusable) firstFocusable.focus();
+        }, 300);
+    }
 }
+
+// Enhanced wishlist function
+function toggleWishlist(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+    
+    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+    const isInWishlist = wishlist.includes(productId);
+    
+    if (isInWishlist) {
+        wishlist = wishlist.filter(id => id !== productId);
+        showNotification(`${product.title} removed from wishlist!`, 'info');
+    } else {
+        wishlist.push(productId);
+        showNotification(`${product.title} added to wishlist!`, 'success');
+    }
+    
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    
+    // Update wishlist UI (you can expand this)
+    const wishlistBadge = document.querySelector('.relative svg + span');
+    if (wishlistBadge) {
+        wishlistBadge.textContent = wishlist.length;
+        wishlistBadge.classList.toggle('hidden', wishlist.length === 0);
+    }
+}
+
+// Scroll to top function
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
+
+// Enhanced keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const cartSidebar = document.getElementById('cart-sidebar');
+        if (!cartSidebar.classList.contains('translate-x-full')) {
+            toggleCart();
+        }
+        
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (!mobileMenu.classList.contains('hidden')) {
+            toggleMobileMenu();
+        }
+    }
+});
+
+// Initialize wishlist on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+    const wishlistBadge = document.querySelector('.relative svg + span');
+    if (wishlistBadge) {
+        wishlistBadge.textContent = wishlist.length;
+        wishlistBadge.classList.toggle('hidden', wishlist.length === 0);
+    }
+});
